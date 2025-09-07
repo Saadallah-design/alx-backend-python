@@ -1,33 +1,118 @@
-faithokoth@ubuntu:python-generators-0x00 % cat 0-main.py
-#!/usr/bin/python3
+import mysql.connector
+import csv
+import os
+import uuid
+from dotenv import load_dotenv
 
-seed = __import__('seed')
+load_dotenv()
 
-connection = seed.connect_db()
-if connection:
-    seed.create_database(connection)
-    connection.close()
-    print(f"connection successful")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = "ALX_prodev"
 
-    connection = seed.connect_to_prodev()
 
-    if connection:
-        seed.create_table(connection)
-        seed.insert_data(connection, 'user_data.csv')
-        cursor = connection.cursor()
-        cursor.execute(f"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'ALX_prodev';")
-        result = cursor.fetchone()
-        if result:
-            print(f"Database ALX_prodev is present ")
-        cursor.execute(f"SELECT * FROM user_data LIMIT 5;")
-        rows = cursor.fetchall()
-        print(rows)
-        cursor.close()
+def connect_db():
 
-faithokoth@ubuntu:python-generators-0x00 % ./0-main.py
-connection successful
-Table user_data created successfully
-Database ALX_prodev is present 
-[('00234e50-34eb-4ce2-94ec-26e3fa749796', 'Dan Altenwerth Jr.', 'Molly59@gmail.com', 67), ('006bfede-724d-4cdd-a2a6-59700f40d0da', 'Glenda Wisozk', 'Miriam21@gmail.com', 119), ('006e1f7f-90c2-45ad-8c1d-1275d594cc88', 'Daniel Fahey IV', 'Delia.Lesch11@hotmail.com', 49), ('00af05c9-0a86-419e-8c2d-5fb7e899ae1c', 'Ronnie Bechtelar', 'Sandra19@yahoo.com', 22), ('00cc08cc-62f4-4da1-b8e4-f5d9ef5dbbd4', 'Alma Bechtelar', 'Shelly_Balistreri22@hotmail.com', 102)]
+    # Connect to the MySQL server (not a specific database)
+    # Returns the connection object
+    try:
+        connection = mysql.connector.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        return connection
+    except mysql.connector.Error as e:
+        print(f"Error connecting to MySQL: {e}")
+        return None
 
-faithokoth@h@ubuntu:python-generators-0x00 %
+
+def create_database(connection):
+    # To link with the ALX_prodev database later.
+    #  Linking it using the connection object passed as an argument
+    cursor = connection.cursor()
+    cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME};")
+    cursor.close()
+
+
+def connect_to_prodev():
+    
+    # Connect to the ALX_prodev database
+    # Returns the connection object
+    try:
+        connection = mysql.connector.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+        return connection
+    except mysql.connector.Error as e:
+        print(f"Error connecting to {DB_NAME}: {e}")
+        return None
+
+
+def create_table(connection):
+    """
+    Create the user_data table if it does not exist
+    Fields:
+        user_id: PRIMARY KEY, UUID, Indexed
+        name: VARCHAR NOT NULL
+        email: VARCHAR NOT NULL
+        age: DECIMAL NOT NULL
+    """
+    cursor = connection.cursor()
+    create_table_query = f"""
+    CREATE TABLE IF NOT EXISTS user_data (
+        user_id CHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        age DECIMAL(5,2) NOT NULL,
+        INDEX idx_user_id (user_id)
+    );
+    """
+    cursor.execute(create_table_query)
+    connection.commit()
+    cursor.close()
+    print("Table user_data created successfully")
+
+
+def insert_data(connection, csv_file):
+    """
+    Insert data from CSV file into user_data table if it does not exist
+    CSV format: user_id,name,email,age
+    """
+    cursor = connection.cursor()
+
+    with open(csv_file, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Check if user_id already exists
+            cursor.execute("SELECT user_id FROM user_data WHERE user_id=%s", (row['user_id'],))
+            if cursor.fetchone():
+                continue  # Skip if already exists
+
+            # Insert new row
+            cursor.execute(
+                "INSERT INTO user_data (user_id, name, email, age) VALUES (%s, %s, %s, %s)",
+                (row['user_id'], row['name'], row['email'], row['age'])
+            )
+
+    connection.commit()
+    cursor.close()
+    print("Data inserted successfully")
+
+
+# Optional: Test run
+if __name__ == "__main__":
+    conn = connect_db()
+    if conn:
+        create_database(conn)
+        conn.close()
+
+    conn = connect_to_prodev()
+    if conn:
+        create_table(conn)
+        insert_data(conn, "user_data.csv")
+        conn.close()
