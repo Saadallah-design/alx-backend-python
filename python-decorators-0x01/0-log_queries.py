@@ -1,6 +1,10 @@
 import sqlite3
 import functools
+from datetime import datetime
 
+
+# first what is a decorator? A decorator is a function that takes another function as an argument, extends its behavior, and returns a new function. 
+# Decorators are often used for logging, access control, instrumentation, and caching.
 # Decorator to log SQL queries before execution
 def log_queries(func):
     @functools.wraps(func)  # preserves the original function's metadata
