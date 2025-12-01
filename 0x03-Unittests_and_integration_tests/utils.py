@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generic utilities for github org client.
 """
+# import requests: Essential for making HTTP requests to external web services (APIs).
 import requests
 from functools import wraps
 from typing import (
