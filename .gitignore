@@ -7,6 +7,8 @@ messaging_app/URL_ROUTING_GUIDE.md
 messaging_app/FILTERS_GUIDE.md
 messaging_app/NESTED_ROUTING_GUIDE.md
 messaging_app/AUTHENTICATION_GUIDE.md
+messaging_app/PERMISSIONS_TASK.md
+messaging_app/PERMISSIONS_IMPLEMENTATION.md
 
 # Python cache
 __pycache__/

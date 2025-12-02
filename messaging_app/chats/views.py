@@ -95,15 +95,15 @@ class MessageViewSet(viewsets.ModelViewSet):
         
         if conversation_pk:
             # Nested route: filter by conversation and ensure user is a participant
-            return Message.objects.select_related('sender_id', 'conversation_id').filter(
+            return Message.objects.filter(
                 conversation_id=conversation_pk,
                 conversation_id__participants_id__user_id=self.request.user.user_id
-            ).distinct()
+            ).select_related('sender_id', 'conversation_id').distinct()
         else:
             # Regular route: show all messages in conversations the user participates in
-            return Message.objects.select_related('sender_id', 'conversation_id').filter(
+            return Message.objects.filter(
                 conversation_id__participants_id__user_id=self.request.user.user_id
-            ).distinct()
+            ).select_related('sender_id', 'conversation_id').distinct()
     
     def create(self, request, *args, **kwargs):
         """
