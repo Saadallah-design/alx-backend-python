@@ -2,10 +2,13 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from .models import user, Message, Conversation
 from .serializers import UserSerializer, MessageSerializer, ConversationSerializer
 from .permissions import IsParticipantOfConversation, IsMessageSenderOrRecipient
+from .filters import MessageFilter, ConversationFilter
 
 
 # class UserViewSet(viewsets.ModelViewSet):
@@ -27,7 +30,8 @@ class ConversationViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated, IsParticipantOfConversation]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = ConversationFilter
     search_fields = ['participants_id__email', 'participants_id__first_name']
     ordering_fields = ['created_at']
     
@@ -76,15 +80,17 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing Message instances.
     Provides list, create, retrieve, update, and destroy actions.
+    Includes pagination (20 messages per page) and filtering.
     
     Only allows users to access messages in conversations they are participants in.
     """
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated, IsMessageSenderOrRecipient]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = MessageFilter
     search_fields = ['message_body', 'sender_id__email']
     ordering_fields = ['sent_at']
-    filterset_fields = ['conversation_id', 'sender_id']
+    pagination_class = PageNumberPagination
     
     def get_queryset(self):
         """
