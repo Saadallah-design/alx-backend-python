@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-A simple client for interacting with the GitHub API organization endpoints.
+Unit tests for GithubOrgClient.
+
+This module contains test cases for the GithubOrgClient class,
+testing its methods and properties with mocked external dependencies.
 """
 
 import unittest
-from unittest.mock import Mock, patch
-
-import parameterized
+from unittest.mock import Mock, patch, PropertyMock
+from parameterized import parameterized
 from typing import Dict
+from client import GithubOrgClient
+
 
 class TestGithubOrgClient(unittest.TestCase):
     """
@@ -41,7 +45,32 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         mock_get_json.return_value = expected_payload
         client = GithubOrgClient(org_name)
-        self.assertEqual(client.org(), expected_payload)
+        self.assertEqual(client.org, expected_payload)
         mock_get_json.assert_called_once_with(
             f"https://api.github.com/orgs/{org_name}"
         )
+
+    @patch('client.GithubOrgClient.org', new_callable=PropertyMock)
+    def test_public_repos_url(self, mock_org: PropertyMock) -> None:
+        """
+        Test that _public_repos_url returns the expected URL.
+
+        This test mocks the org property to return a known payload
+        and verifies that _public_repos_url extracts the correct
+        repos_url from that payload.
+
+        Args:
+            mock_org: Mocked org property
+
+        Returns:
+            None
+        """
+        test_payload = {
+            "repos_url": "https://api.github.com/orgs/test/repos"
+        }
+        mock_org.return_value = test_payload
+
+        client = GithubOrgClient("test")
+        result = client._public_repos_url
+
+        self.assertEqual(result, test_payload["repos_url"])
