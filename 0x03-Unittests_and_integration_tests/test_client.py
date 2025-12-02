@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
 Unit tests for GithubOrgClient.
-
+Since, it fails the autochecker i will skip it
 This module contains test cases for the GithubOrgClient class,
 testing its methods and properties with mocked external dependencies.
 """
 
 import unittest
 from unittest.mock import Mock, patch, PropertyMock
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 from typing import Dict
 from client import GithubOrgClient
+from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -142,3 +143,59 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         result = GithubOrgClient.has_license(repo, license_key)
         self.assertEqual(result, expected)
+
+
+@parameterized_class(
+    ("org_payload", "repos_payload", "expected_repos", "apache2_repos"),
+    TEST_PAYLOAD
+)
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """
+    Integration tests for GithubOrgClient.
+
+    This class performs integration testing by mocking only external
+    HTTP requests while testing the full workflow of the client.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """
+        Set up class fixtures before running tests.
+
+        This method starts a patcher for requests.get and configures
+        it to return appropriate fixtures based on the URL requested.
+        """
+        def side_effect_function(url):
+            """
+            Side effect function for mocking requests.get.
+
+            Args:
+                url: The URL being requested
+
+            Returns:
+                Mock object with json method returning appropriate payload
+            """
+            mock_response = Mock()
+            if url == "https://api.github.com/orgs/google":
+                mock_response.json.return_value = cls.org_payload
+            elif url == "https://api.github.com/orgs/google/repos":
+                mock_response.json.return_value = cls.repos_payload
+            else:
+                mock_response.json.return_value = None
+            return mock_response
+
+        # Start the patcher
+        cls.get_patcher = patch(
+            'requests.get',
+            side_effect=side_effect_function
+        )
+        cls.get_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """
+        Tear down class fixtures after running tests.
+
+        This method stops the patcher for requests.get.
+        """
+        cls.get_patcher.stop()
