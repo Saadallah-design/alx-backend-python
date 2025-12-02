@@ -1,14 +1,13 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, ConversationViewSet, MessageViewSet
+from rest_framework import routers
+from .views import ConversationViewSet, MessageViewSet
 
 # Create a router and register our viewsets
-routers = DefaultRouter()
-# routers.register(r'users', UserViewSet, basename='user')
-routers.register(r'conversations', ConversationViewSet, basename='conversation')
-routers.register(r'messages', MessageViewSet, basename='message')
+router = routers.DefaultRouter()
+router.register(r'conversations', ConversationViewSet, basename='conversation')
+router.register(r'messages', MessageViewSet, basename='message')
 
 # The API URLs are determined automatically by the router
 urlpatterns = [
-    path('', include(routers.urls)),
+    path('', include(router.urls)),
 ]
