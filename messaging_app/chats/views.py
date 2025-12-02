@@ -2,13 +2,13 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from .models import user, Message, Conversation
 from .serializers import UserSerializer, MessageSerializer, ConversationSerializer
 from .permissions import IsParticipantOfConversation, IsMessageSenderOrRecipient
 from .filters import MessageFilter, ConversationFilter
+from .pagination import MessagePagination
 
 
 # class UserViewSet(viewsets.ModelViewSet):
@@ -90,7 +90,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     filterset_class = MessageFilter
     search_fields = ['message_body', 'sender_id__email']
     ordering_fields = ['sent_at']
-    pagination_class = PageNumberPagination
+    pagination_class = MessagePagination
     
     def get_queryset(self):
         """
