@@ -28,13 +28,6 @@ class user(AbstractBaseUser):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
-# message model
-class Message(models.Model):
-    message_id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    sender_id = models.ForeignKey(user, on_delete=models.CASCADE, related_name='sent_messages')
-    message_body = models.TextField(null=False)
-    sent_at = models.DateTimeField(auto_now_add=True)
-
 # conversation model
 class Conversation(models.Model):
     conversation_id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -49,3 +42,11 @@ class Conversation(models.Model):
                 name='unique_conversation_per_user_pair'
             )
         ]
+
+# message model
+class Message(models.Model):
+    message_id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    conversation_id = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages', null=False)
+    sender_id = models.ForeignKey(user, on_delete=models.CASCADE, related_name='sent_messages')
+    message_body = models.TextField(null=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
