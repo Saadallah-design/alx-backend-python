@@ -151,19 +151,22 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         """
-        List all messages, optionally filtered by conversation_id.
-        Query parameter: ?conversation_id=<uuid>
+        List all messages with pagination (20 per page).
+        Applies filters and ordering automatically through filter_backends.
+        Returns paginated response with count, next, previous, and results.
         """
-        queryset = self.get_queryset()
-        
-        # Filter by conversation if provided
-        conversation_id = request.query_params.get('conversation_id', None)
-        if conversation_id:
-            queryset = queryset.filter(conversation_id=conversation_id)
+        queryset = self.filter_queryset(self.get_queryset())
         
         # Order by sent time
         queryset = queryset.order_by('sent_at')
         
+        # Apply pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        # Fallback if pagination is disabled
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
