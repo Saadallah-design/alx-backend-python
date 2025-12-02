@@ -119,3 +119,30 @@ class TestGithubOrgClient(unittest.TestCase):
 
             # Verify get_json was called once with the correct URL
             mock_get_json.assert_called_once_with(test_url)
+
+    @parameterized.expand([
+        ({"license": {"key": "my_license"}}, "my_license", True),
+        ({"license": {"key": "other_license"}}, "my_license", False),
+    ])
+    def test_has_license(
+        self,
+        repo: Dict,
+        license_key: str,
+        expected: bool
+    ) -> None:
+        """
+        Test that has_license correctly checks repository license.
+
+        This test verifies the static method has_license returns True
+        when the repository has the specified license, and False otherwise.
+
+        Args:
+            repo: Repository dictionary with license information
+            license_key: License key to check for
+            expected: Expected boolean result
+
+        Returns:
+            None
+        """
+        result = GithubOrgClient.has_license(repo, license_key)
+        self.assertEqual(result, expected)
