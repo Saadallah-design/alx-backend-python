@@ -12,6 +12,7 @@ from parameterized import parameterized, parameterized_class
 from typing import Dict
 from client import GithubOrgClient
 from fixtures import TEST_PAYLOAD
+import requests
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -186,7 +187,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
         # Start the patcher
         cls.get_patcher = patch(
-            'utils.requests.get',
+            'requests.get',
             side_effect=side_effect_function
         )
         cls.get_patcher.start()
