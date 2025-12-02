@@ -10,7 +10,7 @@ from parameterized import parameterized
 from typing import Dict, Tuple, Any
 
 from unittest.mock import patch, Mock
-from utils import get_json
+from utils import get_json, memoize
 from utils import access_nested_map
 
 
@@ -102,3 +102,39 @@ class TestGetJson(unittest.TestCase):
 
         # test that the result matches the expected payload
         self.assertEqual(result, test_payload)
+
+class TestMemoize(unittest.TestCase):
+    """
+    Test cases for the memoize decorator.
+
+    This class tests the memoize decorator to ensure it caches
+    method results correctly.
+    """
+
+    def test_memoize(self) -> None:
+        """
+        Test that the memoize decorator caches the result of a method call.
+
+        Returns:
+            None
+        """
+        class TestClass:
+            def a_method(self) -> int:
+                return 42
+
+            @memoize
+            def a_property(self) -> int:
+                return self.a_method()
+
+        with patch.object(TestClass, 'a_method', return_value=42) as mock_method:
+            test_instance = TestClass()
+
+            # First call to a_property should call a_method
+            result1 = test_instance.a_property
+            self.assertEqual(result1, 42)
+            mock_method.assert_called_once()
+
+            # Second call to a_property should not call a_method again
+            result2 = test_instance.a_property
+            self.assertEqual(result2, 42)
+            mock_method.assert_called_once()  # still only called once
