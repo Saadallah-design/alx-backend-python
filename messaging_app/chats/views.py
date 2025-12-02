@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -24,6 +24,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
     # using prefetch_related to optimize queries
     queryset = Conversation.objects.prefetch_related('participants_id', 'messages').all()
     serializer_class = ConversationSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['participants_id__email', 'participants_id__first_name']
+    ordering_fields = ['created_at']
     
     def create(self, request, *args, **kwargs):
         """
@@ -65,6 +68,10 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.select_related('sender_id', 'conversation_id').all()
     serializer_class = MessageSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['message_body', 'sender_id__email']
+    ordering_fields = ['sent_at']
+    filterset_fields = ['conversation_id', 'sender_id']
     
     def create(self, request, *args, **kwargs):
         """

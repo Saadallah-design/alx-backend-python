@@ -4,6 +4,7 @@ messaging_app/DATABASE_CONSTRAINTS.md
 messaging_app/SERIALIZERS_GUIDE.md
 messaging_app/VIEWSETS_API_GUIDE.md
 messaging_app/URL_ROUTING_GUIDE.md
+messaging_app/FILTERS_GUIDE.md
 
 # Python cache
 __pycache__/
