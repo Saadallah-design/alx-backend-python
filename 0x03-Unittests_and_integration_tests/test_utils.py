@@ -69,7 +69,10 @@ class TestAccessNestedMap(unittest.TestCase):
         """
         with self.assertRaises(KeyError) as context:
             access_nested_map(nested_map, path)
-        self.assertEqual(str(context.exception), f"'{expected_exception_message}'")
+        self.assertEqual(
+            str(context.exception),
+            f"'{expected_exception_message}'"
+        )
 
 
 class TestGetJson(unittest.TestCase):
@@ -86,10 +89,17 @@ class TestGetJson(unittest.TestCase):
         ("http://holberton.io", {"payload": False}),
     ])
     @patch('utils.requests.get')
-    def test_get_json(self, test_url: str, test_payload: Dict[str, Any], mock_get: Mock) -> None:
+    def test_get_json(
+        self,
+        test_url: str,
+        test_payload: Dict[str, Any],
+        mock_get: Mock
+    ) -> None:
         """
-        Test that get_json returns the expected payload without making actual HTTP calls, using a mocked requests.get."""
-        
+        Test that get_json returns expected payload without HTTP calls.
+
+        Uses mocked requests.get to avoid actual network requests.
+        """
         mock_response = Mock()
         mock_response.json.return_value = test_payload
         mock_get.return_value = mock_response
@@ -103,6 +113,7 @@ class TestGetJson(unittest.TestCase):
         # test that the result matches the expected payload
         self.assertEqual(result, test_payload)
 
+
 class TestMemoize(unittest.TestCase):
     """
     Test cases for the memoize decorator.
@@ -113,7 +124,7 @@ class TestMemoize(unittest.TestCase):
 
     def test_memoize(self) -> None:
         """
-        Test that the memoize decorator caches the result of a method call.
+        Test that memoize decorator caches method call results.
 
         Returns:
             None
@@ -126,7 +137,9 @@ class TestMemoize(unittest.TestCase):
             def a_property(self) -> int:
                 return self.a_method()
 
-        with patch.object(TestClass, 'a_method', return_value=42) as mock_method:
+        with patch.object(
+            TestClass, 'a_method', return_value=42
+        ) as mock_method:
             test_instance = TestClass()
 
             # First call to a_property should call a_method
