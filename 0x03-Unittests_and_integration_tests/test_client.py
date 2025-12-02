@@ -186,7 +186,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
         # Start the patcher
         cls.get_patcher = patch(
-            'requests.get',
+            'utils.requests.get',
             side_effect=side_effect_function
         )
         cls.get_patcher.start()
