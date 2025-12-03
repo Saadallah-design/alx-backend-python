@@ -119,14 +119,10 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Create user
+        # Create user (serializer.create() handles password hashing)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user_obj = serializer.save()
-        
-        # Set password (hashed)
-        user_obj.set_password(password)
-        user_obj.save()
         
         # Generate tokens
         refresh = RefreshToken.for_user(user_obj)

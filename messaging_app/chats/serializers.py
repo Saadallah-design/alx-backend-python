@@ -55,6 +55,25 @@ class UserSerializer(serializers.ModelSerializer):
             if not cleaned.isdigit() or len(cleaned) < 10:
                 raise serializers.ValidationError("Phone number must contain at least 10 digits")
         return value
+    
+    def create(self, validated_data):
+        """
+        Create and return a new user instance with hashed password.
+        This method is called when serializer.save() is invoked.
+        """
+        # Extract password fields from validated_data
+        password = validated_data.pop('password', None)
+        password_confirm = validated_data.pop('password_confirm', None)
+        
+        # Create user instance without password
+        user_instance = user.objects.create(**validated_data)
+        
+        # Set password if provided (this will hash it)
+        if password:
+            user_instance.set_password(password)
+            user_instance.save()
+        
+        return user_instance
 
 
 class MessageSerializer(serializers.ModelSerializer):

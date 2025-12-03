@@ -73,7 +73,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+1234567890\"\n}"
+							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"password_confirm\": \"SecurePass123!\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+1234567890\",\n    \"role\": \"guest\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register/",
