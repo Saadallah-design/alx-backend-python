@@ -46,6 +46,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """
         Create a new conversation with participants.
+        The authenticated user is automatically added as a participant.
         Expected payload: {"participants_id": [user_id1, user_id2, ...]}
         """
         serializer = self.get_serializer(data=request.data)
@@ -54,11 +55,13 @@ class ConversationViewSet(viewsets.ModelViewSet):
         # Create the conversation
         conversation = serializer.save()
         
-        # Add participants
+        # Add participants from request
         participants_ids = request.data.get('participants_id', [])
-        if participants_ids:
-            participants = user.objects.filter(user_id__in=participants_ids)
-            conversation.participants_id.set(participants)
+        participants = user.objects.filter(user_id__in=participants_ids)
+        
+        # Always add the authenticated user as a participant
+        conversation.participants_id.add(request.user)
+        conversation.participants_id.add(*participants)
         
         # Return the created conversation with full details
         response_serializer = self.get_serializer(conversation)

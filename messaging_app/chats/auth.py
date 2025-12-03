@@ -113,6 +113,12 @@ class RegisterView(generics.CreateAPIView):
         password = request.data.get('password')
         password_confirm = request.data.get('password_confirm')
         
+        if not password or not password_confirm:
+            return Response(
+                {'error': 'Password and password confirmation are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         if password != password_confirm:
             return Response(
                 {'error': 'Passwords do not match'},

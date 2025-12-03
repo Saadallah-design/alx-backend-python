@@ -45,6 +45,20 @@
 					"name": "Register User",
 					"event": [
 						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique email for each iteration",
+									"const timestamp = Date.now();",
+									"const randomNum = Math.floor(Math.random() * 10000);",
+									"const uniqueEmail = `testuser${timestamp}${randomNum}@example.com`;",
+									"pm.collectionVariables.set('test_email', uniqueEmail);",
+									"pm.collectionVariables.set('test_password', 'SecurePass123!');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
 							"listen": "test",
 							"script": {
 								"exec": [
@@ -73,7 +87,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"password_confirm\": \"SecurePass123!\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+1234567890\",\n    \"role\": \"guest\"\n}"
+							"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirm\": \"{{test_password}}\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+1234567890\",\n    \"role\": \"guest\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register/",
@@ -100,6 +114,9 @@
 									"        pm.expect(response).to.have.property('access');",
 									"        pm.expect(response).to.have.property('refresh');",
 									"    });",
+									"}",
+									"else {",
+									"    console.log('Login failed:', pm.response.text());",
 									"}"
 								],
 								"type": "text/javascript"
@@ -116,7 +133,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"SecurePass123!\"\n}"
+							"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login/",

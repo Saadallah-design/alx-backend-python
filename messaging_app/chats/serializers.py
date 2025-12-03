@@ -12,8 +12,8 @@ class UserSerializer(serializers.ModelSerializer):
     active_conversations_count = serializers.SerializerMethodField()
     
     # Password field for registration (write-only)
-    password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
-    password_confirm = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    password_confirm = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     
     # class Meta is a nested class to define model and fields. 
     # it tells the serializer which model to serialize and which fields to include.
@@ -51,7 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_phone_number(self, value):
         """Validate phone number format"""
         if value:
-            cleaned = value.replace('-', '').replace(' ', '').replace('(', '').replace(')', '')
+            cleaned = value.replace('-', '').replace(' ', '').replace('(', '').replace(')', '').replace('+', '')
             if not cleaned.isdigit() or len(cleaned) < 10:
                 raise serializers.ValidationError("Phone number must contain at least 10 digits")
         return value
@@ -189,10 +189,10 @@ class ConversationSerializer(serializers.ModelSerializer):
         """Validate conversation data with ValidationError"""
         participants = data.get('participants_id', [])
         
-        # Minimum participants
-        if len(participants) < 2:
+        # Minimum participants (allow 1 since creator will be added automatically)
+        if len(participants) < 1:
             raise serializers.ValidationError({
-                "participants_id": "A conversation must have at least 2 participants"
+                "participants_id": "A conversation must have at least 1 participant"
             })
         
         # Maximum participants
