@@ -11,6 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
     # SerializerMethodField for conversation count
     active_conversations_count = serializers.SerializerMethodField()
     
+    # Password field for registration (write-only)
+    password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+    password_confirm = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+    
     # class Meta is a nested class to define model and fields. 
     # it tells the serializer which model to serialize and which fields to include.
     class Meta:
@@ -24,7 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
             'created_at',
             'full_name',
-            'active_conversations_count'
+            'active_conversations_count',
+            'password',
+            'password_confirm'
         ]
         read_only_fields = ['user_id', 'created_at']
         # extra kwargs to make password_hash write-only field
