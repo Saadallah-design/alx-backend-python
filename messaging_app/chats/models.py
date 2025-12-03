@@ -27,21 +27,21 @@ class user(AbstractBaseUser):
         null=False
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+    
+    def __str__(self):
+        return self.email
 
 # conversation model
 class Conversation(models.Model):
     conversation_id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     participants_id = models.ManyToManyField(user, related_name='conversations')
     created_at = models.DateTimeField(auto_now_add=True)
-
-# constraint to ensure that a user can only have one conversation with another user
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['participants_id'],
-                name='unique_conversation_per_user_pair'
-            )
-        ]
+    
+    def __str__(self):
+        return f"Conversation {self.conversation_id}"
 
 # message model
 class Message(models.Model):

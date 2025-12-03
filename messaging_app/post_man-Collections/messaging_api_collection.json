@@ -1,0 +1,645 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Messaging API Collection",
+		"description": "Complete API collection for the Django Messaging App with authentication, conversations, messages, pagination, and filtering",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "conversation_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "message_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', response.access);",
+									"    pm.collectionVariables.set('refresh_token', response.refresh);",
+									"    pm.collectionVariables.set('user_id', response.user.user_id);",
+									"    pm.test('User registered successfully', () => {",
+									"        pm.expect(response.user).to.have.property('email');",
+									"        pm.expect(response).to.have.property('access');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register", ""]
+						},
+						"description": "Register a new user and receive JWT tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', response.access);",
+									"    pm.collectionVariables.set('refresh_token', response.refresh);",
+									"    pm.collectionVariables.set('user_id', response.user.user_id);",
+									"    pm.test('Login successful', () => {",
+									"        pm.expect(response).to.have.property('access');",
+									"        pm.expect(response).to.have.property('refresh');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login", ""]
+						},
+						"description": "Login with email and password to get JWT tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/user/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "user", ""]
+						},
+						"description": "Get current authenticated user profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/logout/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "logout", ""]
+						},
+						"description": "Logout and blacklist refresh token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, and logout"
+		},
+		{
+			"name": "Conversations",
+			"item": [
+				{
+					"name": "List Conversations (Paginated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response has pagination', () => {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('count');",
+									"    pm.expect(response).to.have.property('results');",
+									"    pm.expect(response.results).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Page size is 20 or less', () => {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.results.length).to.be.at.most(20);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/conversations/",
+							"host": ["{{base_url}}"],
+							"path": ["conversations", ""]
+						},
+						"description": "List all conversations with pagination (20 per page)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('conversation_id', response.conversation_id);",
+									"    pm.test('Conversation created', () => {",
+									"        pm.expect(response).to.have.property('conversation_id');",
+									"        pm.expect(response).to.have.property('participants');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participants_id\": [\"{{user_id}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/conversations/",
+							"host": ["{{base_url}}"],
+							"path": ["conversations", ""]
+						},
+						"description": "Create a new conversation with participants"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Conversation by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/conversations/{{conversation_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["conversations", "{{conversation_id}}", ""]
+						},
+						"description": "Get details of a specific conversation"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Conversations by Participant",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/conversations/?participant={{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["conversations", ""],
+							"query": [
+								{
+									"key": "participant",
+									"value": "{{user_id}}"
+								}
+							]
+						},
+						"description": "Filter conversations by participant UUID"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Conversations by Date",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/conversations/?created_after=2025-01-01",
+							"host": ["{{base_url}}"],
+							"path": ["conversations", ""],
+							"query": [
+								{
+									"key": "created_after",
+									"value": "2025-01-01"
+								}
+							]
+						},
+						"description": "Filter conversations created after a specific date"
+					},
+					"response": []
+				}
+			],
+			"description": "Conversation management endpoints"
+		},
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "List Messages (Paginated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response has pagination with count', () => {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('count');",
+									"    pm.expect(response).to.have.property('next');",
+									"    pm.expect(response).to.have.property('previous');",
+									"    pm.expect(response).to.have.property('results');",
+									"});",
+									"",
+									"pm.test('Page size is 20 messages per page', () => {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.results).to.be.an('array');",
+									"    pm.expect(response.results.length).to.be.at.most(20);",
+									"});",
+									"",
+									"pm.test('Pagination count matches paginator', () => {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.count).to.be.a('number');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""]
+						},
+						"description": "List all messages with pagination - verifies page.paginator.count (20 per page)"
+					},
+					"response": []
+				},
+				{
+					"name": "Send Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('message_id', response.message_id);",
+									"    pm.test('Message sent successfully', () => {",
+									"        pm.expect(response).to.have.property('message_id');",
+									"        pm.expect(response).to.have.property('message_body');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"conversation_id\": \"{{conversation_id}}\",\n    \"message_body\": \"Hello, this is a test message!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messages/",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""]
+						},
+						"description": "Send a new message to a conversation"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Message by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/{{message_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["messages", "{{message_id}}", ""]
+						},
+						"description": "Get details of a specific message"
+					},
+					"response": []
+				},
+				{
+					"name": "List Messages - Nested Route",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Pagination is applied', () => {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('count');",
+									"    pm.expect(response.results.length).to.be.at.most(20);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/conversations/{{conversation_id}}/messages/",
+							"host": ["{{base_url}}"],
+							"path": ["conversations", "{{conversation_id}}", "messages", ""]
+						},
+						"description": "Get messages for a conversation via nested route"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Messages by Conversation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/?conversation={{conversation_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""],
+							"query": [
+								{
+									"key": "conversation",
+									"value": "{{conversation_id}}"
+								}
+							]
+						},
+						"description": "Filter messages by conversation UUID"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Messages by Sender",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/?sender={{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""],
+							"query": [
+								{
+									"key": "sender",
+									"value": "{{user_id}}"
+								}
+							]
+						},
+						"description": "Filter messages by sender UUID"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Messages by Content",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/?message_body=test",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""],
+							"query": [
+								{
+									"key": "message_body",
+									"value": "test"
+								}
+							]
+						},
+						"description": "Filter messages by content (case-insensitive)"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Messages by Date Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/?sent_at_after=2025-01-01&sent_at_before=2025-12-31",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""],
+							"query": [
+								{
+									"key": "sent_at_after",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "sent_at_before",
+									"value": "2025-12-31"
+								}
+							]
+						},
+						"description": "Filter messages by date range"
+					},
+					"response": []
+				},
+				{
+					"name": "Messages with Page Navigation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/?page=2",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Navigate to page 2 of messages (20 per page)"
+					},
+					"response": []
+				},
+				{
+					"name": "Messages with Custom Page Size",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/messages/?page_size=10",
+							"host": ["{{base_url}}"],
+							"path": ["messages", ""],
+							"query": [
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Request custom page size (max 100)"
+					},
+					"response": []
+				}
+			],
+			"description": "Message management endpoints with pagination verification"
+		}
+	]
+}
